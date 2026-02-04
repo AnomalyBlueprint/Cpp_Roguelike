@@ -39,3 +39,9 @@
 
 # debug information files
 *.dwo
+
+# mac OS folder attributes
+.DS_Store
+*.DS_Store
+
+.qodo
