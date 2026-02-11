@@ -12,7 +12,7 @@ public:
     // Now we load two layers!
     void LoadLayers(const std::vector<int> &ground, const std::vector<int> &walls);
 
-    void Render(SDL_Renderer *renderer, SDL_Texture *texture);
+    void Render(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect camera);
     bool IsWall(int x, int y);
 
 private:

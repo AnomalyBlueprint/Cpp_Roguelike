@@ -47,9 +47,13 @@ void Player::Update(float deltaTime, InputManager *input, TileMap *map)
     }
 }
 
-void Player::Render(SDL_Renderer *renderer, SDL_Texture *texture)
+void Player::Render(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect camera)
 {
-    SDL_Rect destRect = {(int)pos.x, (int)pos.y, size, size};
+    SDL_Rect destRect = {
+        (int)pos.x - camera.x,
+        (int)pos.y - camera.y,
+        size,
+        size};
 
     SDL_Rect srcRect = {8*5, 0, 8, 8};
 

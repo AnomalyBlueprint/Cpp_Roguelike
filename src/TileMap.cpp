@@ -18,15 +18,38 @@ void TileMap::LoadLayers(const std::vector<int> &ground, const std::vector<int> 
         wallLayer = walls;
 }
 
-void TileMap::Render(SDL_Renderer *renderer, SDL_Texture *texture)
+void TileMap::Render(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect camera)
 {
-    for (int y = 0; y < height; y++)
+    int startX = camera.x / tileSize;
+    int startY = camera.y / tileSize;
+    int endX = (camera.x + camera.w) / tileSize + 1;
+    int endY = (camera.y + camera.h) / tileSize + 1;
+
+    // Clamp to map bounds
+    if (startX < 0)
+        startX = 0;
+    if (startY < 0)
+        startY = 0;
+    if (endX > width)
+        endX = width;
+    if (endY > height)
+        endY = height;
+
+    for (int y = startY; y < endY; y++)
     {
-        for (int x = 0; x < width; x++)
+        for (int x = startX; x < endX; x++)
         {
 
-            // 1. Determine Screen Position
-            SDL_Rect destRect = {x * tileSize, y * tileSize, tileSize, tileSize};
+            // WORLD Position
+            int worldX = x * tileSize;
+            int worldY = y * tileSize;
+
+            // SCREEN Position (The Math)
+            SDL_Rect destRect = {
+                worldX - camera.x,
+                worldY - camera.y,
+                tileSize,
+                tileSize};
 
             // 2. DRAW GROUND LAYER (Always Draw)
             int groundID = groundLayer[y * width + x];
@@ -40,10 +63,10 @@ void TileMap::Render(SDL_Renderer *renderer, SDL_Texture *texture)
                 const TileData &wallData = AssetRegistry::Get().GetTile(wallID);
                 TextureManager::SetColor(texture, 180, 180, 180);
                 TextureManager::Draw(texture, wallData.srcRect, destRect, renderer);
+                TextureManager::SetColor(texture, 255, 255, 255);
             }
         }
     }
-    TextureManager::SetColor(texture, 255, 255, 255);
 }
 
 bool TileMap::IsWall(int x, int y)

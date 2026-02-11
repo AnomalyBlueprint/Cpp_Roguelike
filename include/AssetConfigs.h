@@ -54,7 +54,7 @@ public:
         bitmaskMap[3] = 17;  
 
         bitmaskMap[6] = 10; 
-        bitmaskMap[9] = 11; 
+        bitmaskMap[9] = 11;
     }
 
     const TileData &GetTile(int id)

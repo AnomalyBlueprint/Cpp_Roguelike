@@ -27,6 +27,10 @@ private:
     void FixedUpdate(); // For Physics/Fixed Logic
     void Render();
 
+    SDL_Rect camera;
+    int mapWidth;
+    int mapHeight;
+    
     bool isRunning;
     SDL_Window *window;
     SDL_Renderer *renderer;

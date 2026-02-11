@@ -13,7 +13,9 @@ public:
 
     // Removed HandleInput(SDL_Event). Replaced with InputManager dependency.
     void Update(float deltaTime, InputManager *input, TileMap *map);
-    void Render(SDL_Renderer *renderer, SDL_Texture *texture);
+    void Render(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect camera);
+
+    Vector2Int GetPos() { return pos; }
 
 private:
     Vector2Int pos;
