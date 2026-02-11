@@ -4,6 +4,8 @@
 #include "Player.h"
 #include "InputManager.h"
 #include "TileMap.h"
+#include "Entity.h"
+#include "Enemy.h"
 
 class Game
 {
@@ -20,12 +22,22 @@ public:
     bool IsRunning() { return isRunning; }
 
     TileMap *GetTileMap() { return level; }
+    enum class GameState
+    {
+        PLAYERTURN,  // Waiting for W/A/S/D
+        ENEMYTURN,   // Rats move
+        ENVIRONMENT, // Traps, Fire, Spikes
+        RESOLVE      // Buffs/Debuffs (Poison damage, etc.)
+    };
+
 private:
     // Internal Engine Steps
     void HandleEvents();
     void Update(float deltaTime);
     void FixedUpdate(); // For Physics/Fixed Logic
     void Render();
+
+    GameState gameState;
 
     SDL_Rect camera;
     int mapWidth;
@@ -38,6 +50,7 @@ private:
     // Subsystems
     Player *player;
     InputManager *inputManager;
+    std::vector<Entity *> enemies;
 
     // Timing Variables
     Uint64 lastTime;

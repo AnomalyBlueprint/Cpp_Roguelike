@@ -69,7 +69,7 @@ void Game::Init(const char *title, int width, int height)
                 int index = y * mapWidth + x;
 
                 // Borders
-                if (y == 0 || y == mapHeight-1 || x == 0 || x == mapWidth-1)
+                if (y == 0 || y == mapHeight - 1 || x == 0 || x == mapWidth - 1)
                 {
                     walls[index] = 1;
                 }
@@ -98,9 +98,9 @@ void Game::Init(const char *title, int width, int height)
                         mask += 1; // North
                     if (x > 0 && walls[y * mapWidth + (x - 1)] == 1)
                         mask += 2; // West
-                    if (x < mapWidth-1 && walls[y * mapWidth + (x + 1)] == 1)
+                    if (x < mapWidth - 1 && walls[y * mapWidth + (x + 1)] == 1)
                         mask += 4; // East
-                    if (y < mapHeight-1 && walls[(y + 1) * mapWidth + x] == 1)
+                    if (y < mapHeight - 1 && walls[(y + 1) * mapWidth + x] == 1)
                         mask += 8; // South
 
                     int tileID = AssetRegistry::Get().GetAutoTile(mask);
@@ -134,6 +134,22 @@ void Game::Init(const char *title, int width, int height)
         // Init Subsystems
         inputManager = new InputManager();
         player = new Player(32 * 3, 32 * 3);
+
+        // Spawn 50 Rats
+        for (int i = 0; i < 50; i++)
+        {
+            // Random Position on the map
+            int rX = (rand() % mapWidth) * 32;
+            int rY = (rand() % mapHeight) * 32;
+
+            // Ensure we don't spawn inside a wall
+            if (!level->IsWall(rX / 32, rY / 32))
+            {
+                // ID 21 = Rat (Make sure you registered this in AssetConfigs!)
+                Entity *rat = new Enemy(rX, rY, "Rat", 21);
+                enemies.push_back(rat);
+            }
+        }
 
         lastTime = SDL_GetTicks64();
     }
@@ -193,7 +209,50 @@ void Game::Update(float deltaTime)
 {
     if (player && level)
     {
-        player->Update(deltaTime, inputManager, level);
+        // --- STATE MACHINE ---
+        switch (gameState)
+        {
+
+        // --- PHASE 1: PLAYER ---
+        case GameState::PLAYERTURN:
+            if (player->Update(deltaTime, inputManager, level))
+            {
+                // Player moved! Pass baton to Enemies.
+                gameState = GameState::ENEMYTURN;
+            }
+            break;
+
+        // --- PHASE 2: ENEMIES ---
+        case GameState::ENEMYTURN:
+            for (Entity *e : enemies)
+            {
+                // Enemies think and move
+                e->Update(deltaTime, inputManager, level);
+            }
+            // Enemies are done. Pass baton to World.
+            gameState = GameState::ENVIRONMENT;
+            break;
+
+        // --- PHASE 3: ENVIRONMENT ---
+        case GameState::ENVIRONMENT:
+            // Example:
+            // level->UpdateTraps();
+            // level->SpreadFire();
+
+            // For now, we just pass through since we have no fire yet.
+            gameState = GameState::RESOLVE;
+            break;
+
+        // --- PHASE 4: RESOLVE / STATUS EFFECTS ---
+        case GameState::RESOLVE:
+            // Example:
+            // if (player->IsPoisoned()) player->TakeDamage(1);
+            // player->ReduceCooldowns();
+
+            // Cycle complete! Back to Player.
+            gameState = GameState::PLAYERTURN;
+            break;
+        }
 
         // --- CAMERA LOGIC ---
 
@@ -231,6 +290,10 @@ void Game::Render()
     {
         level->Render(renderer, tileset, camera);
     }
+    for (Entity *e : enemies)
+    {
+        e->Render(renderer, tileset, camera);
+    }
     if (player)
     {
         player->Render(renderer, tileset, camera);
@@ -246,6 +309,12 @@ void Game::Clean()
         delete level;
         level = nullptr;
     }
+    for (Entity *e : enemies)
+    {
+        delete e;
+        e = nullptr;
+    }
+    enemies.clear();
     if (player)
     {
         delete player;

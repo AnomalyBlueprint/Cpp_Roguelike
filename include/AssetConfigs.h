@@ -48,6 +48,9 @@ public:
         // VOID/FILLER
         RegisterTile(99, "Void", 1, 1, false);
 
+        RegisterTile(20, "Hero", 4, 0, false); 
+        RegisterTile(21, "Rat", 6, 1, false);  
+
         bitmaskMap[12] = 14; 
         bitmaskMap[10] = 15; 
         bitmaskMap[5] = 16;  
@@ -56,6 +59,9 @@ public:
         bitmaskMap[6] = 10; 
         bitmaskMap[9] = 11;
     }
+
+
+
 
     const TileData &GetTile(int id)
     {

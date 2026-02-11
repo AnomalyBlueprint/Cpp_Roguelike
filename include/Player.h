@@ -1,24 +1,18 @@
 #pragma once
-#include <SDL.h>
-#include "GameMath.h"
-#include "InputManager.h" // Player needs to know Input exists
+#include "Entity.h" // Inherit from Entity
+#include "InputManager.h"
 
-class TileMap; // Forward Declaration
-
-class Player
+class Player : public Entity
 {
 public:
-    Player(float x, float y);
+    Player(int x, int y); // Simplified Constructor
     ~Player();
 
-    // Removed HandleInput(SDL_Event). Replaced with InputManager dependency.
-    void Update(float deltaTime, InputManager *input, TileMap *map);
-    void Render(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect camera);
+    bool Update(float deltaTime, InputManager *input, TileMap *map) override;
 
-    Vector2Int GetPos() { return pos; }
+    // We DON'T override Render anymore! The base Entity class handles it.
+    // (Unless you want special effects like a glowing aura)
 
 private:
-    Vector2Int pos;
-    int size;
     const int TILE_SIZE = 32;
 };
