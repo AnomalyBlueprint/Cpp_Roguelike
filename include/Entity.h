@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL.h>
 #include <string>
+#include <iostream> // For logging
 #include "Math/Vector2Int.h"
 #include "AssetConfigs.h"
 
@@ -8,10 +9,17 @@
 class InputManager;
 class TileMap;
 
+struct Stats
+{
+    int maxHP = 10;
+    int damage = 1;
+    int armor = 0; // AC (Defense)
+};
+
 class Entity
 {
 public:
-    Entity(int x, int y, const std::string &name, int spriteID);
+    Entity(int x, int y, const std::string &name, int spriteID, Stats stats);
     virtual ~Entity();
 
     // Virtual methods: Children (Player/Enemy) will override these
@@ -19,7 +27,12 @@ public:
 
     // Base Render: Most entities just draw their sprite, so we implement it here
     virtual void Render(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect camera);
-
+    
+    // --- COMBAT METHODS ---
+    bool IsAlive() const { return currentHP > 0; }
+    void Attack(Entity *target);
+    void TakeDamage(int amount);
+    
     // Getters
     Vector2Int GetPos() const { return pos; }
     std::string GetName() const { return name; }
@@ -30,4 +43,7 @@ protected:
     int spriteID;   // Which tile to draw from the AssetRegistry
     int size;       // Pixel size (usually 32)
     bool isVisible; // For later (Fog of War)
+
+    Stats baseStats;
+    int currentHP;
 };

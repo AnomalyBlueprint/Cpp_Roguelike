@@ -2,6 +2,7 @@
 #include "TextureManager.h"
 #include <cstdlib> // For rand() and srand()
 #include <ctime>   // For time()
+#include "EntityManager.h"
 
 Game::Game() : isRunning(false), window(nullptr), renderer(nullptr), player(nullptr), inputManager(nullptr), lastTime(0), lag(0.0) {}
 
@@ -134,20 +135,28 @@ void Game::Init(const char *title, int width, int height)
         // Init Subsystems
         inputManager = new InputManager();
         player = new Player(32 * 3, 32 * 3);
+        // ... inside Game::Init ...
 
-        // Spawn 50 Rats
+        // 1. Load the Database
+        MonsterDatabase::Get().LoadDatabase("assets/data/monsters.json");
+
+        // 2. Spawn 50 Monsters using Real Data
         for (int i = 0; i < 50; i++)
         {
-            // Random Position on the map
             int rX = (rand() % mapWidth) * 32;
             int rY = (rand() % mapHeight) * 32;
 
-            // Ensure we don't spawn inside a wall
             if (!level->IsWall(rX / 32, rY / 32))
             {
-                // ID 21 = Rat (Make sure you registered this in AssetConfigs!)
-                Entity *rat = new Enemy(rX, rY, "Rat", 21);
-                enemies.push_back(rat);
+
+                // Get Random Monster Data
+                std::string randomID = MonsterDatabase::Get().GetRandomID();
+                const MonsterStats &stats = MonsterDatabase::Get().GetStats(randomID);
+
+                // Create Enemy (You need to update Enemy constructor to take 'stats')
+                // For now, if Enemy(x, y, name, sprite) is your constructor:
+                Entity *mob = new Enemy(rX, rY, stats);
+                EntityManager::Get().AddEntity(mob);
             }
         }
 
@@ -224,12 +233,7 @@ void Game::Update(float deltaTime)
 
         // --- PHASE 2: ENEMIES ---
         case GameState::ENEMYTURN:
-            for (Entity *e : enemies)
-            {
-                // Enemies think and move
-                e->Update(deltaTime, inputManager, level);
-            }
-            // Enemies are done. Pass baton to World.
+            EntityManager::Get().UpdateAll(deltaTime, inputManager, level);
             gameState = GameState::ENVIRONMENT;
             break;
 
@@ -245,11 +249,7 @@ void Game::Update(float deltaTime)
 
         // --- PHASE 4: RESOLVE / STATUS EFFECTS ---
         case GameState::RESOLVE:
-            // Example:
-            // if (player->IsPoisoned()) player->TakeDamage(1);
-            // player->ReduceCooldowns();
-
-            // Cycle complete! Back to Player.
+            EntityManager::Get().Cleanup();
             gameState = GameState::PLAYERTURN;
             break;
         }
@@ -290,10 +290,7 @@ void Game::Render()
     {
         level->Render(renderer, tileset, camera);
     }
-    for (Entity *e : enemies)
-    {
-        e->Render(renderer, tileset, camera);
-    }
+    EntityManager::Get().RenderAll(renderer, tileset, camera);
     if (player)
     {
         player->Render(renderer, tileset, camera);
@@ -309,12 +306,7 @@ void Game::Clean()
         delete level;
         level = nullptr;
     }
-    for (Entity *e : enemies)
-    {
-        delete e;
-        e = nullptr;
-    }
-    enemies.clear();
+    EntityManager::Get().ClearAll();
     if (player)
     {
         delete player;

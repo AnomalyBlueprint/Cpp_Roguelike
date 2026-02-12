@@ -2,8 +2,13 @@
 #include <cstdlib> // For rand()
 #include "TileMap.h"
 
-Enemy::Enemy(int x, int y, const std::string &name, int spriteID)
-    : Entity(x, y, name, spriteID) {}
+// Convert DB Stats -> Entity Stats
+Enemy::Enemy(int x, int y, const MonsterStats &dbStats)
+    : Entity(x, y, dbStats.name, dbStats.spriteID, {dbStats.hp, dbStats.damage, 0}) // Assuming 0 armor for now
+{
+}
+
+// ... Rest of Enemy Code ...
 
 Enemy::~Enemy() {}
 

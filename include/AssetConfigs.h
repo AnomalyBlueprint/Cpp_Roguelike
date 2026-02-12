@@ -48,8 +48,20 @@ public:
         // VOID/FILLER
         RegisterTile(99, "Void", 1, 1, false);
 
-        RegisterTile(20, "Hero", 4, 0, false); 
-        RegisterTile(21, "Rat", 6, 1, false);  
+        RegisterTile(20, "Hero", 4, 0, false);
+        RegisterTile(21, "Skeleton_Warrior", 10, 0, false);
+        RegisterTile(22, "Orc_Grunt", 11, 0, false);
+        RegisterTile(23, "Crab", 12, 0, false);
+        RegisterTile(24, "Floating_Eye", 13, 0, false);
+        RegisterTile(25, "Swamp_Snake", 4, 1, false);
+        RegisterTile(26, "Wild_Dog", 5, 1, false);
+        RegisterTile(27, "Cave_Rat", 6, 1, false);
+        RegisterTile(28, "Wood_Bug", 7, 1, false);
+        RegisterTile(29, "Slime_Phantom", 8, 1, false);
+        RegisterTile(30, "Ghost", 9, 1, false);
+        RegisterTile(31, "Tortoise", 10, 1, false);
+        RegisterTile(32, "Octopus", 11, 0, false);
+        RegisterTile(33, "Screaming_Mandrake", 12, 0, false);
 
         bitmaskMap[12] = 14; 
         bitmaskMap[10] = 15; 

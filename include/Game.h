@@ -4,8 +4,10 @@
 #include "Player.h"
 #include "InputManager.h"
 #include "TileMap.h"
+#include "MonsterConfig.h"
 #include "Entity.h"
 #include "Enemy.h"
+
 
 class Game
 {
@@ -50,7 +52,6 @@ private:
     // Subsystems
     Player *player;
     InputManager *inputManager;
-    std::vector<Entity *> enemies;
 
     // Timing Variables
     Uint64 lastTime;

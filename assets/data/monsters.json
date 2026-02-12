@@ -1,0 +1,108 @@
+{
+	"monsters": [
+		{
+			"id": "skeleton_warrior",
+			"name": "Skeleton Warrior",
+			"sprite_id": 21,
+			"description": "A rattle of bones animated by dark magic.",
+			"hp": 10,
+			"damage": 3
+		},
+		{
+			"id": "orc_grunt",
+			"name": "Orc Grunt",
+			"sprite_id": 22,
+			"description": "A green-skinned brute looking for a fight.",
+			"hp": 15,
+			"damage": 5
+		},
+		{
+			"id": "crab",
+			"name": "Crab",
+			"sprite_id": 23,
+			"description": "A red-shelled crustacean with pinching claws.",
+			"hp": 12,
+			"damage": 4
+		},
+		{
+			"id": "floating_eye",
+			"name": "Floating Eye",
+			"sprite_id": 24,
+			"description": "A glowing eye that hovers in the air, watching intruders.",
+			"hp": 8,
+			"damage": 6
+		},
+		{
+			"id": "swamp_snake",
+			"name": "Swamp Snake",
+			"sprite_id": 25,
+			"description": "A coiled green viper waiting to strike.",
+			"hp": 9,
+			"damage": 3
+		},
+		{
+			"id": "wild_dog",
+			"name": "Wild Dog",
+			"sprite_id": 26,
+			"description": "A feral canine scavenging for food.",
+			"hp": 14,
+			"damage": 4
+		},
+		{
+			"id": "cave_rat",
+			"name": "Cave Rat",
+			"sprite_id": 27,
+			"description": "A grey rodent scuttling in the shadows.",
+			"hp": 5,
+			"damage": 1
+		},
+		{
+			"id": "wood_bug",
+			"name": "Wood Bug",
+			"sprite_id": 28,
+			"description": "A large beetle with a hard, geometric shell.",
+			"hp": 6,
+			"damage": 2
+		},
+		{
+			"id": "slime_phantom",
+			"name": "Slime Phantom",
+			"sprite_id": 29,
+			"description": "A translucent green figure dripping with ectoplasm.",
+			"hp": 14,
+			"damage": 4
+		},
+		{
+			"id": "ghost",
+			"name": "Ghost",
+			"sprite_id": 30,
+			"description": "A spooky white apparition haunting the halls.",
+			"hp": 10,
+			"damage": 3
+		},
+		{
+			"id": "tortoise",
+			"name": "Tortoise",
+			"sprite_id": 31,
+			"description": "A slow-moving reptile with a rock-hard shell.",
+			"hp": 20,
+			"damage": 2
+		},
+		{
+			"id": "octopus",
+			"name": "Octopus",
+			"sprite_id": 32,
+			"description": "A strange land-dwelling cephalopod with grasping tentacles.",
+			"hp": 18,
+			"damage": 5
+		},
+		{
+			"id": "screaming_mandrake",
+			"name": "Screaming Mandrake",
+			"sprite_id": 33,
+			"description": "A plant-creature that shrieks when approached.",
+			"hp": 12,
+			"damage": 2
+		}
+	]
+}

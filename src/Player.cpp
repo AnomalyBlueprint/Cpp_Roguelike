@@ -1,8 +1,8 @@
 #include "Player.h"
 #include "TileMap.h"
+#include "EntityManager.h"
 
-// Pass "Hero" (ID 20) to the base Entity constructor
-Player::Player(int x, int y) : Entity(x, y, "Hero", 20), TILE_SIZE(32) {}
+Player::Player(int x, int y) : Entity(x, y, "Hero", 20, {20, 4, 1}), TILE_SIZE(32) {}
 
 Player::~Player() {}
 
@@ -26,6 +26,14 @@ bool Player::Update(float deltaTime, InputManager *input, TileMap *map)
     // If we tried to move into a wall, we didn't actually move.
     int gridX = targetPos.x / TILE_SIZE;
     int gridY = targetPos.y / TILE_SIZE;
+
+    Entity *target = EntityManager::Get().GetEntityAt(targetPos.x, targetPos.y);
+
+    if (target)
+    {
+        Attack(target);
+        return true; // Turn used to attack
+    }
 
     if (!map->IsWall(gridX, gridY))
     {
