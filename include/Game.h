@@ -7,7 +7,7 @@
 #include "MonsterConfig.h"
 #include "Entity.h"
 #include "Enemy.h"
-
+#include "SDL_ttf.h"
 
 class Game
 {
@@ -40,6 +40,7 @@ private:
     void Render();
 
     GameState gameState;
+    TTF_Font *gameFont;
 
     SDL_Rect camera;
     int mapWidth;

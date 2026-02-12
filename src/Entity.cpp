@@ -1,5 +1,6 @@
 #include "Entity.h"
 #include "TextureManager.h"
+#include "ParticleSystem.h"
 
 Entity::Entity(int x, int y, const std::string &name, int spriteID, Stats stats)
     : pos(x, y), name(name), spriteID(spriteID), size(32), isVisible(true), baseStats(stats)
@@ -62,6 +63,18 @@ void Entity::TakeDamage(int amount)
 {
     currentHP -= amount;
     std::cout << "   -> " << name << " takes " << amount << " dmg! (HP: " << currentHP << "/" << baseStats.maxHP << ")" << std::endl;
+    
+    // 1. Spawn Damage Number
+    // Use Red for damage
+    SDL_Color color = {255, 50, 50, 255};
+    std::string dmgText = "-" + std::to_string(amount);
+
+    // Spawn at center of entity
+    ParticleSystem::Get().EmitText(dmgText, pos.x, pos.y - 20, color);
+
+    // 2. Spawn Blood Sprites (optional)
+    // Assuming Tile ID 21 is a "dot" or blood sprite
+    // ParticleSystem::Get().EmitSprite(21, pos.x, pos.y, 5, {255, 0, 0, 255});
 
     if (currentHP <= 0)
     {

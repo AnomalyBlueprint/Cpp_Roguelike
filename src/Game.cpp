@@ -3,6 +3,8 @@
 #include <cstdlib> // For rand() and srand()
 #include <ctime>   // For time()
 #include "EntityManager.h"
+#include "TextManager.h"
+#include "ParticleSystem.h"
 
 Game::Game() : isRunning(false), window(nullptr), renderer(nullptr), player(nullptr), inputManager(nullptr), lastTime(0), lag(0.0) {}
 
@@ -30,7 +32,16 @@ void Game::Init(const char *title, int width, int height)
         }
 
         isRunning = true;
+        
+        if (!TextManager::Initialize())
+        {
+            std::cout << "Failed to init TextManager!" << std::endl;
+            return;
+        }
+        gameFont = TextManager::LoadFont("assets/fonts/kenney_kenney-fonts/Fonts/Kenney Pixel.ttf", 24);
 
+        ParticleSystem::Get().Init(1000);
+        ParticleSystem::Get().SetFont(gameFont);
         // Seed the random number generator so every run is unique
         std::srand(std::time(nullptr));
 
@@ -253,6 +264,7 @@ void Game::Update(float deltaTime)
             gameState = GameState::PLAYERTURN;
             break;
         }
+        ParticleSystem::Get().Update(deltaTime);
 
         // --- CAMERA LOGIC ---
 
@@ -295,12 +307,18 @@ void Game::Render()
     {
         player->Render(renderer, tileset, camera);
     }
-
+    ParticleSystem::Get().Render(renderer, tileset, camera);
     SDL_RenderPresent(renderer);
 }
 
 void Game::Clean()
 {
+    if (gameFont)
+    {
+        TTF_CloseFont(gameFont);
+        gameFont = nullptr;
+    }
+    TextManager::Clean();
     if (level)
     {
         delete level;
