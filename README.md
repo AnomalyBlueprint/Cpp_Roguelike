@@ -6,7 +6,9 @@ A custom C++ game engine and roguelike built from scratch using SDL2.
 **Art Assets**
 * **Micro Roguelike** by [Kenney.nl](https://kenney.nl/assets/micro-roguelike)
     * License: CC0 1.0 Universal (Public Domain)
-* **Kenney Pixel** by [Kenney.nl](https://kenney.nl/assets/kenney-pixel) 
+* **Fantasy UI Borders** by [Kenney.nl](https://kenney.nl/assets/fantasy-ui-borders)
+    * License: CC0 1.0 Universal (Public Domain)
+* **UI Pack: Pixel Adventure** by [Kenney.nl](https://kenney.nl/assets/ui-pack-pixel-adventure)
     * License: CC0 1.0 Universal (Public Domain)
 
 ## Tech Stack & Versions

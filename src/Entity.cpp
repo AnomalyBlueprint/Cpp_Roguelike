@@ -1,6 +1,7 @@
 #include "Entity.h"
 #include "TextureManager.h"
 #include "ParticleSystem.h"
+#include "UIManager.h"
 
 Entity::Entity(int x, int y, const std::string &name, int spriteID, Stats stats)
     : pos(x, y), name(name), spriteID(spriteID), size(32), isVisible(true), baseStats(stats)
@@ -49,7 +50,8 @@ void Entity::Attack(Entity *target)
     if (!target)
         return;
 
-    std::cout << "[Combat] " << name << " attacks " << target->GetName() << "!" << std::endl;
+    std::string msg = "[Combat] " + name + " attacks " + target->GetName() + "!";
+    UIManager::Get().AddMessage(msg);
 
     // Basic Formula: Damage - Armor (Min 1 damage)
     int effectiveDamage = baseStats.damage - target->baseStats.armor;
@@ -62,15 +64,13 @@ void Entity::Attack(Entity *target)
 void Entity::TakeDamage(int amount)
 {
     currentHP -= amount;
-    std::cout << "   -> " << name << " takes " << amount << " dmg! (HP: " << currentHP << "/" << baseStats.maxHP << ")" << std::endl;
-    
-    // 1. Spawn Damage Number
-    // Use Red for damage
     SDL_Color color = {255, 50, 50, 255};
     std::string dmgText = "-" + std::to_string(amount);
 
-    // Spawn at center of entity
     ParticleSystem::Get().EmitText(dmgText, pos.x, pos.y - 20, color);
+
+    std::string msg = name + " took " + std::to_string(amount) + " damage.";
+    UIManager::Get().AddMessage(msg); // Add to scroll log
 
     // 2. Spawn Blood Sprites (optional)
     // Assuming Tile ID 21 is a "dot" or blood sprite
@@ -78,7 +78,6 @@ void Entity::TakeDamage(int amount)
 
     if (currentHP <= 0)
     {
-        std::cout << "   -> " << name << " has DIED!" << std::endl;
-        // We don't delete immediately (Game loop handles cleanup), we just flag dead
+        UIManager::Get().AddMessage(name + " died!", {200, 0, 0, 255}); // Red death message
     }
 }

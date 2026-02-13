@@ -1,0 +1,114 @@
+{
+	"settings": {
+		"width": 800,
+		"height": 600
+	},
+	"scenes": {
+		"main_menu": [
+			{
+				"id": "title_text",
+				"geometry": {
+					"x": 200,
+					"y": 100,
+					"w": 400,
+					"h": 100
+				},
+				"style": {
+					"bg_color": [76, 29, 149, 255],
+					"border_color": [139, 92, 246, 255]
+				},
+				"content_layout": "vertical"
+			},
+			{
+				"id": "menu_buttons",
+				"geometry": {
+					"x": 300,
+					"y": 300,
+					"w": 200,
+					"h": 200
+				},
+				"style": {
+					"bg_color": [30, 27, 75, 255],
+					"border_color": [67, 56, 202, 255]
+				},
+				"content_layout": "vertical"
+			}
+		],
+		"gameplay": [
+			{
+				"id": "top_view",
+				"geometry": {
+					"x": 0,
+					"y": 0,
+					"w": 800,
+					"h": 30
+				},
+				"style": {
+					"bg_color": [0, 54, 74, 255],
+					"border_color": [0, 249, 0, 255]
+				},
+				"content_layout": "horizontal"
+			},
+			{
+				"id": "game_view",
+				"geometry": {
+					"x": 0,
+					"y": 30,
+					"w": 600,
+					"h": 400
+				},
+				"style": {
+					"bg_color": [0, 0, 0, 255],
+					"border_color": [5, 150, 105, 255]
+				},
+				"content_layout": "free"
+			},
+			{
+				"id": "stats_panel",
+				"geometry": {
+					"x": 600,
+					"y": 30,
+					"w": 200,
+					"h": 400
+				},
+				"style": {
+					"bg_color": [17, 5, 59, 255],
+					"border_color": [245, 236, 0, 255],
+					"border_image": "assets/kenney_fantasy-ui-borders/PNG/Default/Border/panel-border-000.png",
+					"border_slice": [12, 12, 12, 12]
+				},
+				"content_layout": "vertical"
+			},
+			{
+				"id": "message_log",
+				"geometry": {
+					"x": 0,
+					"y": 430,
+					"w": 800,
+					"h": 170
+				},
+				"style": {
+					"bg_color": [0, 30, 87, 255],
+					"border_color": [150, 211, 95, 255]
+				},
+				"content_layout": "vertical"
+			}
+		],
+		"inventory": [
+			{
+				"id": "modal_bg",
+				"geometry": {
+					"x": 100,
+					"y": 50,
+					"w": 600,
+					"h": 500
+				},
+				"style": {
+					"bg_color": [28, 25, 23, 255],
+					"border_color": [120, 113, 108, 255]
+				},
+				"content_layout": "free"
+			}
+		]
+	}
+}

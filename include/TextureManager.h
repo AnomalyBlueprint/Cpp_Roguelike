@@ -1,5 +1,7 @@
 #pragma once
 #include <SDL.h>
+#include <SDL_image.h>
+#include <vector>
 
 class TextureManager
 {
@@ -12,4 +14,5 @@ public:
     static void SetColor(SDL_Texture *tex, Uint8 r, Uint8 g, Uint8 b);
     static void SetAlpha(SDL_Texture *tex, Uint8 alpha);
     static void SetBlendMode(SDL_Texture *tex, SDL_BlendMode mode);
+    static void Draw9Slice(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect dest, const std::vector<int> &slice);
 };

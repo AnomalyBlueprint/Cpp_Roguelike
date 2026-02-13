@@ -36,6 +36,12 @@ public:
     // Getters
     Vector2Int GetPos() const { return pos; }
     std::string GetName() const { return name; }
+    int GetHP() const { return currentHP; }
+    int GetMaxHP() const { return baseStats.maxHP; }
+    int GetDamage() const { return baseStats.damage; }
+    int GetArmor() const { return baseStats.armor; }
+
+
 
 protected:
     Vector2Int pos;

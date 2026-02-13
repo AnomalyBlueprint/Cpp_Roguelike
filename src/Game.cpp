@@ -5,6 +5,8 @@
 #include "EntityManager.h"
 #include "TextManager.h"
 #include "ParticleSystem.h"
+#include "UIManager.h"
+#include "LayoutManager.h"
 
 Game::Game() : isRunning(false), window(nullptr), renderer(nullptr), player(nullptr), inputManager(nullptr), lastTime(0), lag(0.0) {}
 
@@ -23,23 +25,31 @@ void Game::Init(const char *title, int width, int height)
 
         window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN);
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
+        // Load the file
+        LayoutManager::Get().Load("assets/data/layout.json");
+        LayoutManager::Get().SetActiveScene("gameplay");
         if (renderer)
         {
-            tileset = TextureManager::LoadTexture("assets/tileset_colored.bmp", renderer);
+            tileset = TextureManager::LoadTexture("assets/kenney_micro-roguelike/Tilemap/colored_tilemap_packed.png", renderer);
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
             std::cout << "Renderer created!" << std::endl;
         }
 
         isRunning = true;
-        
+        int imgFlags = IMG_INIT_PNG;
+        if (!(IMG_Init(imgFlags) & imgFlags))
+        {
+            std::cout << "SDL_image Error: " << IMG_GetError() << std::endl;
+            return;
+        }
         if (!TextManager::Initialize())
         {
             std::cout << "Failed to init TextManager!" << std::endl;
             return;
         }
         gameFont = TextManager::LoadFont("assets/fonts/kenney_kenney-fonts/Fonts/Kenney Pixel.ttf", 24);
-
+        UIManager::Get().Init(renderer, gameFont);
+        UIManager::Get().AddMessage("Welcome to the Dungeon!", {255, 255, 0, 255}); // Yellow welcome message
         ParticleSystem::Get().Init(1000);
         ParticleSystem::Get().SetFont(gameFont);
         // Seed the random number generator so every run is unique
@@ -268,28 +278,35 @@ void Game::Update(float deltaTime)
 
         // --- CAMERA LOGIC ---
 
-        // 1. Center the camera on the player
-        // Camera X = Player X - Half Screen Width
-        camera.x = player->GetPos().x - (800 / 2);
-        camera.y = player->GetPos().y - (600 / 2);
+        // 1. Get the Game View dimensions from Layout
+        UIPanel gameView = LayoutManager::Get().GetPanel("game_view");
+
+        // Default to full screen if not found (safety)
+        int viewW = (gameView.id != "") ? gameView.rect.w : 800;
+        int viewH = (gameView.id != "") ? gameView.rect.h : 600;
+
+        // 2. Center the camera on the player (Using VIEW sizes)
+        camera.x = player->GetPos().x - (viewW / 2);
+        camera.y = player->GetPos().y - (viewH / 2);
+
+        // Update camera rect size for rendering culling
+        camera.w = viewW;
+        camera.h = viewH;
 
         // --- CAMERA CLAMPING ---
 
-        // 1. Min Bound (Left & Top)
-        // Prevents seeing the black void on the Left/Top sides
+        // Min Bound
         if (camera.x < 0)
             camera.x = 0;
         if (camera.y < 0)
             camera.y = 0;
 
-        // 2. Max Bound (Right & Bottom)
-        // Prevents seeing the black void on the Right/Bottom sides
-        // Logic: The camera stops when its Right Edge hits the Map's Right Edge.
-        if (camera.x > (mapWidth * 32) - camera.w)
-            camera.x = (mapWidth * 32) - camera.w;
+        // Max Bound (Use VIEW sizes to stop earlier!)
+        if (camera.x > (mapWidth * 32) - viewW)
+            camera.x = (mapWidth * 32) - viewW;
 
-        if (camera.y > (mapHeight * 32) - camera.h)
-            camera.y = (mapHeight * 32) - camera.h;
+        if (camera.y > (mapHeight * 32) - viewH)
+            camera.y = (mapHeight * 32) - viewH;
     }
 }
 
@@ -298,16 +315,71 @@ void Game::Render()
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    if (level)
+    // if (player)
+    // {
+    //     UIManager::Get().Render(player->GetHP(), player->GetMaxHP());
+    // }
+
+    // 1. Get current layout
+    const auto &panels = LayoutManager::Get().GetActivePanels();
+
+    // 2. Identify the Game View (if it exists)
+    UIPanel gameView = LayoutManager::Get().GetPanel("game_view");
+
+    // --- PASS 1: GAME WORLD ---
+    if (gameView.id != "")
     {
-        level->Render(renderer, tileset, camera);
+        SDL_RenderSetViewport(renderer, &gameView.rect);
+
+        // Draw World
+        if (level)
+        {
+            level->Render(renderer, tileset, camera);
+        }
+        if (player)
+        {
+            player->Render(renderer, tileset, camera);
+        }
+        EntityManager::Get().RenderAll(renderer, tileset, camera);
+        ParticleSystem::Get().Render(renderer, tileset, camera);
     }
-    EntityManager::Get().RenderAll(renderer, tileset, camera);
-    if (player)
+
+    // --- PASS 2: UI OVERLAYS ---
+    SDL_RenderSetViewport(renderer, NULL); // Reset to full screen
+
+    for (const auto &panel : panels)
     {
-        player->Render(renderer, tileset, camera);
+        // Skip drawing the "hole" for the game view (optional, purely aesthetic)
+        if (panel.id == "game_view")
+            continue;
+        // A. Background (Fill)
+        SDL_SetRenderDrawColor(renderer, panel.bgColor.r, panel.bgColor.g, panel.bgColor.b, panel.bgColor.a);
+        SDL_RenderFillRect(renderer, &panel.rect);
+
+        // B. Border (9-Slice OR Simple Line)
+        if (!panel.borderImage.empty())
+        {
+            SDL_Texture *borderTex = TextureManager::LoadTexture(panel.borderImage.c_str(), renderer);
+
+            // 2. Draw 9-Slice Overlay
+            if (borderTex)
+            {
+                TextureManager::SetColor(borderTex, panel.borderColor.r, panel.borderColor.g, panel.borderColor.b);
+                TextureManager::SetAlpha(borderTex, panel.borderColor.a);
+                TextureManager::Draw9Slice(renderer, borderTex, panel.rect, panel.borderSlice);
+                SDL_DestroyTexture(borderTex);
+            }
+        }
+        else
+        {
+            // Fallback: Simple Line Border
+            SDL_SetRenderDrawColor(renderer, panel.borderColor.r, panel.borderColor.g, panel.borderColor.b, panel.borderColor.a);
+            SDL_RenderDrawRect(renderer, &panel.rect);
+        }
+
+        // C. Content
+        UIManager::Get().RenderPanel(renderer, panel, player);
     }
-    ParticleSystem::Get().Render(renderer, tileset, camera);
     SDL_RenderPresent(renderer);
 }
 
@@ -340,7 +412,7 @@ void Game::Clean()
         SDL_DestroyTexture(tileset);
         tileset = nullptr;
     }
-
+    IMG_Quit();
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     SDL_Quit();

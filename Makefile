@@ -1,7 +1,7 @@
 # Compiler Settings
 CXX = clang++
 CXXFLAGS = -std=c++17 -Wall -Iinclude -I/opt/local/include/SDL2 -D_THREAD_SAFE
-LDFLAGS = -L/opt/local/lib -lSDL2 -lSDL2_ttf
+LDFLAGS = -L/opt/local/lib -lSDL2 -lSDL2_ttf -lSDL2_image
 
 # Directories
 SRC_DIR = src

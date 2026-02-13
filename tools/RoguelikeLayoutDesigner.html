@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roguelike Layout Designer</title>
+
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Load React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Load Babel for JSX support in browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0a0a0a;
+            color: #d4d4d4;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #171717;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #404040;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #525252;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Icons ---
+        const Terminal = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" { ...p }><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>;
+        const Copy = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" { ...p }><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>;
+        const Trash2 = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" { ...p }><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>;
+        const Code = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" { ...p }><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>;
+        const Layers = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" { ...p }><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>;
+        const Layout = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" { ...p }><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>;
+        const Move = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" { ...p }><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg>;
+        const Scaling = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" { ...p }><path d="M21 3 9 15" /><path d="M12 3H3v18h18v-9" /><path d="M16 3h5v5" /><path d="M14 15H9v-5" /></svg>;
+        const Image = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" { ...p }><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>;
+        const Upload = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" { ...p }><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>;
+
+        function App() {
+            // --- State ---
+            const [settings, setSettings] = useState({ width: 800, height: 600 });
+            const [currentScene, setCurrentScene] = useState('gameplay');
+
+            // Default Scenes Data
+            const [scenes, setScenes] = useState({
+                main_menu: [
+                    { id: 'title_text', x: 200, y: 100, w: 400, h: 100, bgColor: '#4c1d95', borderColor: '#8b5cf6', contentLayout: 'vertical', borderImage: '', borderSlice: '10,10,10,10' },
+                    { id: 'menu_buttons', x: 300, y: 300, w: 200, h: 200, bgColor: '#1e1b4b', borderColor: '#4338ca', contentLayout: 'vertical', borderImage: '', borderSlice: '10,10,10,10' }
+                ],
+                gameplay: [
+                    { id: 'top_view', x: 0, y: 0, w: 800, h: 30, bgColor: '#f43f5e', borderColor: '#e11d48', contentLayout: 'horizontal', borderImage: '', borderSlice: '4,4,4,4' },
+                    { id: 'game_view', x: 0, y: 30, w: 600, h: 400, bgColor: '#10b981', borderColor: '#059669', contentLayout: 'free', borderImage: '', borderSlice: '4,4,4,4' },
+                    { id: 'stats_panel', x: 600, y: 30, w: 200, h: 400, bgColor: '#f59e0b', borderColor: '#d97706', contentLayout: 'vertical', borderImage: '', borderSlice: '4,4,4,4' },
+                    { id: 'message_log', x: 0, y: 430, w: 800, h: 170, bgColor: '#3b82f6', borderColor: '#2563eb', contentLayout: 'vertical', borderImage: '', borderSlice: '4,4,4,4' }
+                ],
+                inventory: [
+                    { id: 'modal_bg', x: 100, y: 50, w: 600, h: 500, bgColor: '#1c1917', borderColor: '#78716c', contentLayout: 'free', borderImage: 'assets/ui/fancy_border.png', borderSlice: '16,16,16,16' }
+                ]
+            });
+
+            const [selectedViewId, setSelectedViewId] = useState(null);
+
+            // Dragging State
+            const [dragMode, setDragMode] = useState('none');
+            const [dragStart, setDragStart] = useState(null);
+            const [dragCurrent, setDragCurrent] = useState(null);
+            const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+            const [exportFormat, setExportFormat] = useState('json');
+            const fileInputRef = useRef(null);
+
+            // --- Constants ---
+            const colors = [
+                { name: 'Emerald', hex: '#10b981', border: '#059669' },
+                { name: 'Amber', hex: '#f59e0b', border: '#d97706' },
+                { name: 'Blue', hex: '#3b82f6', border: '#2563eb' },
+                { name: 'Rose', hex: '#f43f5e', border: '#e11d48' },
+                { name: 'Purple', hex: '#a855f7', border: '#9333ea' },
+                { name: 'Cyan', hex: '#06b6d4', border: '#0891b2' },
+                { name: 'Gray', hex: '#4b5563', border: '#374151' },
+                { name: 'Black', hex: '#000000', border: '#333333' }
+            ];
+
+            const activeViews = scenes[currentScene] || [];
+
+            // --- Helpers ---
+            const hexToRgba = (hex) => {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? [
+                    parseInt(result[1], 16),
+                    parseInt(result[2], 16),
+                    parseInt(result[3], 16),
+                    255
+                ] : [0, 0, 0, 255];
+            };
+
+            const getRandomColor = () => colors[Math.floor(Math.random() * colors.length)];
+
+            // --- Handlers ---
+            const handleSettingResize = (dim, val) => {
+                setSettings(prev => ({ ...prev, [dim]: parseInt(val) || 1 }));
+            };
+
+            const updateSceneViews = (newViews) => {
+                setScenes(prev => ({ ...prev, [currentScene]: newViews }));
+            };
+
+            const handleViewUpdate = (id, field, val) => {
+                const updated = activeViews.map(v => v.id === id ? { ...v, [field]: val } : v);
+                updateSceneViews(updated);
+            };
+
+            const handleDeleteView = (id) => {
+                const updated = activeViews.filter(v => v.id !== id);
+                updateSceneViews(updated);
+                if (selectedViewId === id) setSelectedViewId(null);
+            };
+
+            const handleAddView = (rect) => {
+                const newId = `panel_${Date.now().toString().slice(-4)}`;
+                const color = getRandomColor();
+                const newView = {
+                    id: newId,
+                    x: rect.x, y: rect.y, w: rect.w, h: rect.h,
+                    bgColor: color.hex,
+                    borderColor: color.border,
+                    contentLayout: 'free',
+                    borderImage: '',
+                    borderSlice: '10,10,10,10',
+                    borderImagePreview: null // Holds the Data URI for visual rendering
+                };
+                updateSceneViews([...activeViews, newView]);
+                setSelectedViewId(newId);
+            };
+
+            const handleFileChange = (e) => {
+                const file = e.target.files[0];
+                if (file && selectedViewId) {
+                    // 1. Create Data URL for Immediate Preview
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        handleViewUpdate(selectedViewId, 'borderImagePreview', ev.target.result);
+                    };
+                    reader.readAsDataURL(file);
+
+                    // 2. Set Path for JSON Export
+                    const path = `assets/ui/${file.name}`;
+                    handleViewUpdate(selectedViewId, 'borderImage', path);
+                }
+                // Reset input
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            };
+
+            // --- Grid Interaction ---
+            const gridRef = useRef(null);
+
+            const getGridCoords = (e) => {
+                if (!gridRef.current) return { x: 0, y: 0 };
+                const rect = gridRef.current.getBoundingClientRect();
+                const x = Math.floor(((e.clientX - rect.left) / rect.width) * settings.width);
+                const y = Math.floor(((e.clientY - rect.top) / rect.height) * settings.height);
+                return {
+                    x: Math.max(0, Math.min(x, settings.width - 1)),
+                    y: Math.max(0, Math.min(y, settings.height - 1))
+                };
+            };
+
+            const handleMouseDownGrid = (e) => {
+                const coords = getGridCoords(e);
+                setDragMode('create');
+                setDragStart(coords);
+                setDragCurrent(coords);
+                setSelectedViewId(null);
+            };
+
+            const handleMouseDownView = (e, view) => {
+                e.stopPropagation();
+                setSelectedViewId(view.id);
+                const coords = getGridCoords(e);
+                setDragMode('move');
+                setDragStart(coords);
+                setDragOffset({ x: coords.x - view.x, y: coords.y - view.y });
+            };
+
+            const handleMouseDownResize = (e, view) => {
+                e.stopPropagation();
+                if (selectedViewId !== view.id) setSelectedViewId(view.id);
+                setDragMode('resize');
+            };
+
+            const handleMouseMove = (e) => {
+                if (dragMode === 'none') return;
+                const coords = getGridCoords(e);
+                setDragCurrent(coords);
+
+                if (dragMode === 'move' && selectedViewId) {
+                    let newX = coords.x - dragOffset.x;
+                    let newY = coords.y - dragOffset.y;
+                    const view = activeViews.find(v => v.id === selectedViewId);
+                    if (view) {
+                        newX = Math.max(0, Math.min(newX, settings.width - view.w));
+                        newY = Math.max(0, Math.min(newY, settings.height - view.h));
+                        handleViewUpdate(selectedViewId, 'x', newX);
+                        handleViewUpdate(selectedViewId, 'y', newY);
+                    }
+                } else if (dragMode === 'resize' && selectedViewId) {
+                    const view = activeViews.find(v => v.id === selectedViewId);
+                    if (view) {
+                        let newW = coords.x - view.x + 1;
+                        let newH = coords.y - view.y + 1;
+                        newW = Math.max(1, Math.min(newW, settings.width - view.x));
+                        newH = Math.max(1, Math.min(newH, settings.height - view.y));
+                        handleViewUpdate(selectedViewId, 'w', newW);
+                        handleViewUpdate(selectedViewId, 'h', newH);
+                    }
+                }
+            };
+
+            const handleMouseUp = () => {
+                if (dragMode === 'create' && dragStart && dragCurrent) {
+                    const x = Math.min(dragStart.x, dragCurrent.x);
+                    const y = Math.min(dragStart.y, dragCurrent.y);
+                    const w = Math.abs(dragCurrent.x - dragStart.x) + 1;
+                    const h = Math.abs(dragCurrent.y - dragStart.y) + 1;
+                    if (w > 10 && h > 10) {
+                        handleAddView({ x, y, w, h });
+                    }
+                }
+                setDragMode('none');
+                setDragStart(null);
+                setDragCurrent(null);
+                setDragOffset({ x: 0, y: 0 });
+            };
+
+            // --- Generation ---
+            const generateCode = () => {
+                if (exportFormat === 'json') {
+                    const output = {
+                        settings: { width: settings.width, height: settings.height },
+                        scenes: {}
+                    };
+
+                    Object.keys(scenes).forEach(sceneKey => {
+                        output.scenes[sceneKey] = scenes[sceneKey].map(v => ({
+                            id: v.id,
+                            geometry: { x: v.x, y: v.y, w: v.w, h: v.h },
+                            style: {
+                                bg_color: hexToRgba(v.bgColor),
+                                border_color: hexToRgba(v.borderColor),
+                                ...(v.borderImage ? { border_image: v.borderImage } : {}),
+                                ...(v.borderImage ? { border_slice: v.borderSlice.split(',').map(n => parseInt(n.trim()) || 0) } : {})
+                            },
+                            content_layout: v.contentLayout
+                        }));
+                    });
+
+                    return JSON.stringify(output, null, 2);
+                }
+
+                return `// Scene: ${currentScene}\n// See JSON export for full data`;
+            };
+
+            const copyToClipboard = () => {
+                const code = generateCode();
+                const textArea = document.createElement("textarea");
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try { document.execCommand('copy'); } catch (e) { }
+                document.body.removeChild(textArea);
+            };
+
+            const selectedView = activeViews.find(v => v.id === selectedViewId);
+
+            return (
+                <div className="flex flex-col h-screen bg-neutral-950 text-neutral-300 font-mono overflow-hidden">
+                    {/* Header */ }
+                    <header className="flex items-center justify-between px-6 py-4 border-b border-neutral-800 bg-neutral-900/50">
+                        <div className="flex items-center gap-3">
+                            <Terminal className="w-6 h-6 text-emerald-400" />
+                            <h1 className="text-xl font-bold tracking-tight text-white">Roguelike Architect</h1>
+                            <span className="text-xs px-2 py-1 rounded bg-neutral-800 text-neutral-400">v2.2</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs uppercase text-neutral-500 font-bold">Scene</span>
+                                <select
+                                    value={ currentScene }
+                                    onChange={ (e) => { setCurrentScene(e.target.value); setSelectedViewId(null); } }
+                                    className="bg-neutral-900 border border-neutral-700 rounded px-2 py-1 text-sm text-emerald-400 font-bold focus:outline-none focus:border-emerald-500"
+                                >
+                                    { Object.keys(scenes).map(s => <option key={ s } value={ s }>{ s }</option>) }
+                                </select>
+                            </div>
+
+                            <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-700 rounded px-3 py-1">
+                                <span className="text-xs uppercase text-neutral-500 font-bold">Res</span>
+                                <input type="number" value={ settings.width } onChange={ (e) => handleSettingResize('width', e.target.value) } className="w-12 bg-transparent text-center focus:outline-none text-emerald-400 font-bold" />
+                                <span className="text-neutral-600">x</span>
+                                <input type="number" value={ settings.height } onChange={ (e) => handleSettingResize('height', e.target.value) } className="w-12 bg-transparent text-center focus:outline-none text-emerald-400 font-bold" />
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="flex flex-1 overflow-hidden">
+                        {/* Sidebar */ }
+                        <div className="w-80 bg-neutral-900/30 border-r border-neutral-800 flex flex-col overflow-y-auto">
+                            <div className="p-4 border-b border-neutral-800 max-h-[30vh] overflow-y-auto">
+                                <h2 className="text-sm font-bold text-neutral-400 uppercase mb-3 flex items-center gap-2">
+                                    <Layers className="w-4 h-4" /> Panels ({ currentScene })
+                                </h2>
+                                <div className="space-y-2">
+                                    { activeViews.map(view => (
+                                        <div
+                                            key={ view.id }
+                                            onClick={ () => setSelectedViewId(view.id) }
+                                            className={ `group flex items-center justify-between p-2 rounded cursor-pointer border transition-all ${selectedViewId === view.id ? 'bg-neutral-800 border-emerald-500/50' : 'bg-neutral-900 border-transparent hover:bg-neutral-800'}` }
+                                        >
+                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                <div className="w-3 h-3 rounded-full shrink-0" style={ { backgroundColor: view.bgColor } } />
+                                                <span className="text-xs font-medium truncate">{ view.id }</span>
+                                            </div>
+                                            <button onClick={ (e) => { e.stopPropagation(); handleDeleteView(view.id); } } className="opacity-0 group-hover:opacity-100 hover:text-rose-400 transition-opacity">
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    )) }
+                                    { activeViews.length === 0 && <div className="text-center py-4 text-neutral-600 text-xs italic border border-dashed border-neutral-800 rounded">Drag on grid to create panel.</div> }
+                                </div>
+                            </div>
+
+                            { selectedView ? (
+                                <div className="p-4 bg-neutral-900/50 flex-1 overflow-y-auto">
+                                    <h2 className="text-sm font-bold text-neutral-400 uppercase mb-4 flex items-center gap-2">
+                                        <Layout className="w-4 h-4" /> Properties
+                                    </h2>
+                                    <div className="space-y-5">
+                                        <div className="space-y-3">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] text-neutral-500 uppercase font-bold">Panel ID</label>
+                                                <input type="text" value={ selectedView.id } onChange={ (e) => handleViewUpdate(selectedView.id, 'id', e.target.value) } className="w-full bg-neutral-950 border border-neutral-700 rounded p-1.5 text-xs focus:border-emerald-500 focus:outline-none" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] text-neutral-500 uppercase font-bold">Content Layout</label>
+                                                <select value={ selectedView.contentLayout } onChange={ (e) => handleViewUpdate(selectedView.id, 'contentLayout', e.target.value) } className="w-full bg-neutral-950 border border-neutral-700 rounded p-1.5 text-xs text-neutral-300 focus:border-emerald-500 focus:outline-none">
+                                                    <option value="free">Free (Absolute)</option>
+                                                    <option value="vertical">Vertical Stack</option>
+                                                    <option value="horizontal">Horizontal Stack</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-1"><label className="text-[10px] text-neutral-500 uppercase font-bold">X</label><input type="number" value={ selectedView.x } onChange={ (e) => handleViewUpdate(selectedView.id, 'x', parseInt(e.target.value) || 0) } className="w-full bg-neutral-950 border border-neutral-700 rounded p-1 text-xs" /></div>
+                                            <div className="space-y-1"><label className="text-[10px] text-neutral-500 uppercase font-bold">Y</label><input type="number" value={ selectedView.y } onChange={ (e) => handleViewUpdate(selectedView.id, 'y', parseInt(e.target.value) || 0) } className="w-full bg-neutral-950 border border-neutral-700 rounded p-1 text-xs" /></div>
+                                            <div className="space-y-1"><label className="text-[10px] text-neutral-500 uppercase font-bold">W</label><input type="number" value={ selectedView.w } onChange={ (e) => handleViewUpdate(selectedView.id, 'w', parseInt(e.target.value) || 0) } className="w-full bg-neutral-950 border border-neutral-700 rounded p-1 text-xs" /></div>
+                                            <div className="space-y-1"><label className="text-[10px] text-neutral-500 uppercase font-bold">H</label><input type="number" value={ selectedView.h } onChange={ (e) => handleViewUpdate(selectedView.id, 'h', parseInt(e.target.value) || 0) } className="w-full bg-neutral-950 border border-neutral-700 rounded p-1 text-xs" /></div>
+                                        </div>
+
+                                        <div className="space-y-2 pt-2 border-t border-neutral-800">
+                                            <label className="text-[10px] text-neutral-500 uppercase font-bold">Colors (BG / Border)</label>
+                                            <div className="flex gap-2 items-center">
+                                                <div className="relative w-8 h-8 rounded border border-neutral-700 overflow-hidden">
+                                                    <input type="color" value={ selectedView.bgColor } onChange={ (e) => handleViewUpdate(selectedView.id, 'bgColor', e.target.value) } className="absolute -top-2 -left-2 w-12 h-12 cursor-pointer" />
+                                                </div>
+                                                <div className="relative w-8 h-8 rounded border border-neutral-700 overflow-hidden">
+                                                    <input type="color" value={ selectedView.borderColor } onChange={ (e) => handleViewUpdate(selectedView.id, 'borderColor', e.target.value) } className="absolute -top-2 -left-2 w-12 h-12 cursor-pointer" />
+                                                </div>
+                                                <div className="text-[10px] text-neutral-500 ml-2">Custom</div>
+                                            </div>
+                                            <div className="flex gap-1 flex-wrap mt-2">
+                                                { colors.map(c => (
+                                                    <button key={ c.name } onClick={ () => { handleViewUpdate(selectedView.id, 'bgColor', c.hex); handleViewUpdate(selectedView.id, 'borderColor', c.border); } }
+                                                        className="w-5 h-5 rounded-full border border-neutral-700 hover:scale-110 transition-transform"
+                                                        style={ { backgroundColor: c.hex } }
+                                                        title={ c.name }
+                                                    />
+                                                )) }
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3 pt-2 border-t border-neutral-800">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] text-neutral-500 uppercase font-bold flex items-center gap-2">
+                                                    <Image className="w-3 h-3" /> 9-Slice Border
+                                                </label>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Path (e.g., assets/ui/border.png)"
+                                                        value={ selectedView.borderImage }
+                                                        onChange={ (e) => handleViewUpdate(selectedView.id, 'borderImage', e.target.value) }
+                                                        className="flex-1 bg-neutral-950 border border-neutral-700 rounded p-1.5 text-xs focus:border-emerald-500 focus:outline-none placeholder:text-neutral-700"
+                                                    />
+                                                    <input
+                                                        type="file"
+                                                        ref={ fileInputRef }
+                                                        onChange={ handleFileChange }
+                                                        className="hidden"
+                                                        accept="image/*"
+                                                    />
+                                                    <button
+                                                        onClick={ () => fileInputRef.current.click() }
+                                                        className="p-1.5 bg-neutral-800 border border-neutral-700 rounded hover:bg-neutral-700 text-neutral-400 hover:text-white"
+                                                        title="Select Image File"
+                                                    >
+                                                        <Upload className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <div className="flex justify-between items-center text-[10px] text-neutral-500">
+                                                        <span>Slice (Top, Right, Bottom, Left)</span>
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="T, R, B, L (e.g. 10, 10, 10, 10)"
+                                                        value={ selectedView.borderSlice }
+                                                        onChange={ (e) => handleViewUpdate(selectedView.id, 'borderSlice', e.target.value) }
+                                                        className="w-full bg-neutral-950 border border-neutral-700 rounded p-1.5 text-xs focus:border-emerald-500 focus:outline-none font-mono tracking-wide"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="p-4 text-neutral-600 text-sm italic">Select a panel to edit properties.</div>
+                            ) }
+                        </div>
+
+                        {/* Main Canvas */ }
+                        <div className="flex-1 flex flex-col bg-neutral-950 relative overflow-hidden">
+                            <div className="absolute top-4 left-4 z-10 pointer-events-none">
+                                <div className="text-xs text-neutral-500 bg-neutral-900/80 p-2 rounded backdrop-blur border border-neutral-800/50">
+                                    Scene: <span className="text-emerald-400 font-bold uppercase">{ currentScene }</span>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 overflow-auto p-8 flex items-center justify-center bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neutral-900 to-neutral-950">
+                                <div
+                                    ref={ gridRef }
+                                    className="relative bg-black shadow-2xl select-none"
+                                    style={ {
+                                        width: settings.width,
+                                        height: settings.height,
+                                        backgroundImage: `linear-gradient(to right, #262626 1px, transparent 1px), linear-gradient(to bottom, #262626 1px, transparent 1px)`,
+                                        backgroundSize: `40px 40px`, // Fixed grid visual size
+                                        cursor: dragMode === 'create' ? 'crosshair' : 'default',
+                                        border: '1px solid #333'
+                                    } }
+                                    onMouseDown={ handleMouseDownGrid }
+                                    onMouseMove={ handleMouseMove }
+                                    onMouseUp={ handleMouseUp }
+                                    onMouseLeave={ handleMouseUp }
+                                >
+                                    { activeViews.map(view => {
+                                        const isSelected = selectedViewId === view.id;
+                                        // Visual style for 9-slice simulation
+
+                                        // Standard CSS border logic (fallback)
+                                        let finalStyle = {
+                                            left: view.x, top: view.y, width: view.w, height: view.h,
+                                            backgroundColor: view.bgColor,
+                                            border: `2px ${view.borderImage ? 'dashed' : 'solid'} ${view.borderColor}`,
+                                            color: '#fff'
+                                        };
+
+                                        // Apply real 9-slice if preview is available
+                                        if (view.borderImagePreview) {
+                                            // Parse slice (replace commas with spaces for CSS syntax)
+                                            const sliceVal = view.borderSlice.replace(/,/g, ' ');
+                                            const borderWidthVal = view.borderSlice.split(',')[0].trim() + 'px'; // Simple default width matching slice top
+
+                                            finalStyle = {
+                                                ...finalStyle,
+                                                border: `${borderWidthVal} solid transparent`, // Make space for image
+                                                borderImageSource: `url(${view.borderImagePreview})`,
+                                                borderImageSlice: `${sliceVal} fill`,
+                                                borderImageRepeat: 'stretch'
+                                            };
+                                        }
+
+                                        return (
+                                            <div
+                                                key={ view.id }
+                                                onMouseDown={ (e) => handleMouseDownView(e, view) }
+                                                className={ `absolute flex flex-col overflow-hidden ${isSelected ? 'z-20 ring-2 ring-white ring-opacity-50' : 'z-10 hover:opacity-90'} ${dragMode === 'move' && selectedViewId === view.id ? 'opacity-90 cursor-grabbing' : 'cursor-grab'}` }
+                                                style={ finalStyle }
+                                            >
+                                                {/* Label */ }
+                                                <div className="bg-black/20 p-1 text-[10px] font-mono truncate flex justify-between items-center pointer-events-none">
+                                                    <span className="font-bold">{ view.id }</span>
+                                                    <span className="opacity-50">{ view.contentLayout[0].toUpperCase() }</span>
+                                                </div>
+
+                                                {/* Content Simulation */ }
+                                                <div className="flex-1 p-2 opacity-30 flex flex-col gap-1 pointer-events-none">
+                                                    { view.contentLayout === 'vertical' && <><div className="h-2 w-3/4 bg-white rounded" /><div className="h-2 w-1/2 bg-white rounded" /><div className="h-2 w-2/3 bg-white rounded" /></> }
+                                                    { view.contentLayout === 'horizontal' && <div className="flex gap-1"><div className="h-4 w-4 bg-white rounded" /><div className="h-4 w-4 bg-white rounded" /><div className="h-4 w-4 bg-white rounded" /></div> }
+                                                    { view.contentLayout === 'free' && <div className="text-[9px] text-center mt-4">Free Content</div> }
+                                                </div>
+
+                                                { isSelected && (
+                                                    <div onMouseDown={ (e) => handleMouseDownResize(e, view) } className="absolute bottom-0 right-0 w-4 h-4 bg-white/20 hover:bg-white/50 cursor-se-resize flex items-center justify-center rounded-tl">
+                                                        <Scaling className="w-2.5 h-2.5 text-white" />
+                                                    </div>
+                                                ) }
+                                            </div>
+                                        );
+                                    }) }
+                                    { dragMode === 'create' && dragStart && dragCurrent && (
+                                        <div
+                                            className="absolute bg-white/10 border border-white/50 z-30 pointer-events-none"
+                                            style={ {
+                                                left: Math.min(dragStart.x, dragCurrent.x),
+                                                top: Math.min(dragStart.y, dragCurrent.y),
+                                                width: Math.abs(dragCurrent.x - dragStart.x) + 1,
+                                                height: Math.abs(dragCurrent.y - dragStart.y) + 1,
+                                            } }
+                                        />
+                                    ) }
+                                </div>
+                            </div>
+
+                            {/* Footer / Code */ }
+                            <div className="h-40 bg-neutral-900 border-t border-neutral-800 flex flex-col">
+                                <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-800 bg-neutral-950">
+                                    <span className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-2">
+                                        <Code className="w-4 h-4" /> Config Output
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={ () => setExportFormat('json') } className={ `px-3 py-1 text-xs font-bold rounded ${exportFormat === 'json' ? 'bg-neutral-800 text-emerald-400' : 'text-neutral-500'}` }>JSON</button>
+                                        <button onClick={ copyToClipboard } className="flex items-center gap-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded transition-colors">
+                                            <Copy className="w-3 h-3" /> Copy
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="flex-1 overflow-auto p-4 font-mono text-xs text-neutral-400 bg-neutral-925">
+                                    <pre className="select-all whitespace-pre-wrap">{ generateCode() }</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

@@ -38,8 +38,6 @@ void MonsterDatabase::LoadDatabase(const std::string &filename)
             // Store in map
             database[stats.id] = stats;
             allIDs.push_back(stats.id);
-
-            std::cout << "[DB] Registered: " << stats.name << std::endl;
         }
     }
     catch (const json::parse_error &e)
