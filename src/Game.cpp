@@ -30,7 +30,8 @@ void Game::Init(const char *title, int width, int height)
         LayoutManager::Get().SetActiveScene("gameplay");
         if (renderer)
         {
-            tileset = TextureManager::LoadTexture("assets/kenney_micro-roguelike/Tilemap/colored_tilemap_packed.png", renderer);
+            // tileset = TextureManager::LoadTexture("assets/kenney_micro-roguelike/Tilemap/colored_tilemap_packed.png", renderer);
+            tileset = TextureManager::LoadTexture("assets/kenney_tiny-dungeon/Tilemap/tilemap_packed.png", renderer);
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
             std::cout << "Renderer created!" << std::endl;
         }
@@ -100,6 +101,14 @@ void Game::Init(const char *title, int width, int height)
                 {
                     walls[index] = 1;
                 }
+                /**
+                 * lets fill 5x5 block with center hole at 20,20 for testing
+                 */
+                else if (x >= 20 && x <= 24 && y >= 20 && y <= 24 && !(x == 22 && y == 22))
+                {
+                    walls[index] = 1;
+                }
+
             }
         }
 
@@ -223,6 +232,28 @@ void Game::HandleEvents()
         {
             isRunning = false;
         }
+        // --- NEW: Pass Input to UI (Scrolling) ---
+        UIManager::Get().HandleInput(event);
+
+        // --- NEW: Handle "New Message" Button Click ---
+        if (event.type == SDL_MOUSEBUTTONDOWN)
+        {
+            int mx = event.button.x;
+            int my = event.button.y;
+
+            // Get Log Panel area
+            UIPanel logPanel = LayoutManager::Get().GetPanel("message_log");
+
+            // Check if click is inside the "New V" button area (Bottom-Right of log)
+            if (logPanel.id != "" &&
+                mx > logPanel.rect.x + logPanel.rect.w - 70 &&
+                mx < logPanel.rect.x + logPanel.rect.w &&
+                my > logPanel.rect.y + logPanel.rect.h - 25 &&
+                my < logPanel.rect.y + logPanel.rect.h)
+            {
+                UIManager::Get().ScrollToBottom();
+            }
+        }
         if (inputManager)
         {
             inputManager->HandleEvent(event);
@@ -314,11 +345,6 @@ void Game::Render()
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-
-    // if (player)
-    // {
-    //     UIManager::Get().Render(player->GetHP(), player->GetMaxHP());
-    // }
 
     // 1. Get current layout
     const auto &panels = LayoutManager::Get().GetActivePanels();

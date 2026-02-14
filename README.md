@@ -10,6 +10,8 @@ A custom C++ game engine and roguelike built from scratch using SDL2.
     * License: CC0 1.0 Universal (Public Domain)
 * **UI Pack: Pixel Adventure** by [Kenney.nl](https://kenney.nl/assets/ui-pack-pixel-adventure)
     * License: CC0 1.0 Universal (Public Domain)
+* **Kenney Fonts** by [Kenney.nl](https://kenney.nl/assets/kenney-fonts)
+    * License: CC0 1.0 Universal (Public Domain)
 
 ## Tech Stack & Versions
 
